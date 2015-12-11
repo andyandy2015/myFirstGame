@@ -23,8 +23,6 @@ public class LevelManager : MonoBehaviour {
 	
 	
 	List <Material> matList = new List<Material>();
-	//Sprite sprite;
-
 
 	int currentStage = 0;
 	
