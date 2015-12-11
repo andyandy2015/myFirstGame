@@ -1,0 +1,185 @@
+using UnityEngine;
+using System.Collections;
+using UnityEngine.UI;
+using System.Collections.Generic; 
+
+public class LevelManager : MonoBehaviour {
+
+	//UI -------------
+	//private int score;
+	public int score;
+	public Text scoreText;
+	public int health;
+	public Text healthText;
+	// screens ------------------
+	public GameObject gameOverSc;
+	public GameObject resetSc;
+	public GameObject winSc;
+	//--------rigidbody
+	public Rigidbody playerRig;
+	//public GameObject itsPlayer;
+	// ---- Boolean for control Win - Lose
+	public bool playerSuccess = true;
+	
+	
+	List <Material> matList = new List<Material>();
+	//Sprite sprite;
+
+
+	int currentStage = 0;
+	
+	//------- animation
+	public GameObject toNivel;
+	public GameObject toFallido;
+	public GameObject toAcertado;
+	
+	void Start ()
+	{
+	//---------- list
+		matList.Add ((Material)Resources.Load ("matNyc0"));
+		matList.Add ((Material)Resources.Load ("matNyc1"));
+		matList.Add ((Material)Resources.Load ("matNyc2"));
+		matList.Add ((Material)Resources.Load ("matNyc3"));
+		matList.Add ((Material)Resources.Load ("matNyc4"));
+		matList.Add ((Material)Resources.Load ("matNyc5"));
+		
+		GameObject.Find("PlaneBack").GetComponent<Renderer>().material = matList [currentStage];
+		
+		//-------- tracking score and health
+		PlayerPrefs.GetInt ("scorePref");
+		score = PlayerPrefs.GetInt ("scorePref");
+		PlayerPrefs.GetInt ("healthPref");
+		health = 5;
+		health = PlayerPrefs.GetInt ("healthPref");
+		
+		//UI to convert string to int
+		scoreText.text = score.ToString ();
+		healthText.text = health.ToString ();
+		
+		// Control screens ----------------------
+		gameOverSc.SetActive(false);
+		resetSc.SetActive(false);
+		winSc.SetActive(false);
+		
+		levelControl();
+			
+	}
+		
+	void Update ()
+	{
+	//UI to update the score
+		if(scoreText.name == "scoreText")
+			{
+				scoreText.text = "" + score;
+			}
+		PlayerPrefs.SetInt ("scorePref", score);
+		
+		if(scoreText.name == "healthText")
+		{
+			healthText.text = "" + health;	
+		}
+		PlayerPrefs.SetInt ("healthPref", health); 
+					
+	}
+
+	// FAILED OR GAME OVER ---------------------
+	public void GameOver()
+	{
+		// this reset player for the next stage
+		playerSuccess = true;
+		if(health > 0)
+		{
+			health -= 1;
+			StartCoroutine (ResetStage());
+		}
+		
+		if(health == 0)
+		{
+			StartCoroutine (GameOverStage());
+			score = 0;
+			health = 5;	
+		}	
+	}
+		
+	public void StartAgainButton()
+	{
+		Application.LoadLevel(Application.loadedLevel);
+	}
+	
+	public void animaNivel()
+	{
+		Instantiate (toNivel, new Vector3 (2.2f,-0.3f, -2.3f), Quaternion.Euler (4.3f,140f,358f));
+	}
+	
+	public void animaFallido()
+	{
+		Instantiate (toFallido, transform.position, transform.rotation);
+	}
+	
+	public void animaAcertado()
+	{
+		Instantiate (toAcertado, new Vector3 (2.2f,-0.3f, -2.3f), Quaternion.Euler (4.3f,140f,358f));
+		GameObject.Find("PlaneBack").GetComponent<Renderer>().material = matList [currentStage];
+	}
+	
+	public void GoNextLevel()
+	{
+		StartCoroutine (WinGoNextLevel());
+	}
+	
+	// COROUTINES RESET, GAME OVER, WIN -------------
+	IEnumerator ResetStage()
+	//public void ResetStage()
+	{
+		winSc.gameObject.SetActive (false);
+		resetSc.gameObject.SetActive (true);
+		playerRig.velocity = new Vector3 (0,0,0);
+		playerRig.gameObject.SetActive (false);
+		animaFallido();
+		yield return new WaitForSeconds (5);
+		//GameObject.Find("PlaneBack").GetComponent<Renderer>().material = matList [currentStage];
+		Application.LoadLevel("Game3");
+	}
+
+	IEnumerator GameOverStage()
+	{
+		resetSc.gameObject.SetActive (false);
+		playerRig.velocity = new Vector3 (0,0,0);
+		gameOverSc.gameObject.SetActive (true);
+		animaFallido();
+		yield return new WaitForSeconds (5);
+		Application.LoadLevel ("Lose");
+	}
+	
+	IEnumerator WinGoNextLevel()
+	{
+		winSc.gameObject.SetActive (true);
+		currentStage = currentStage+ 1; 
+		//GameObject.Find("PlaneBack").GetComponent<Renderer>().material = matList [currentStage];
+		animaAcertado();
+		yield return new WaitForSeconds(5);	
+		//currentStage += 1; 
+		//StartAgainButton();
+		Application.LoadLevel(Application.loadedLevel);
+		
+	}
+
+	// Score
+	public void AddScore (int newScoreValue)
+	{
+		score += newScoreValue;
+	}
+			
+	public void levelControl()
+	{
+	
+		//int panel = stages[currentStage]["panelShow"]; 
+		// Debug.Log ("panel to show is working, yep" + panel);
+		 // calling the grid
+		gameObject.GetComponent<GridScript2>().CreateGrid(); 
+		//GameObject.Find("PlaneBack").GetComponent<Renderer>().material = matList [currentStage];
+		//currentStage += 1;
+		
+		
+	}
+}
